@@ -1,23 +1,18 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: golang-app-ingress
+  name: go-web-app
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: gce
 spec:
   rules:
-  - host: go-web-app.test      # Replace with your domain or use an IP address
+  - host: go-web-app.local
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: golang-app
+            name: go-web-app
             port:
               number: 80
-  # Optional: TLS configuration for HTTPS
-  tls:
-  - hosts:
-    - go-web-app.local          # Replace with your domain
-    secretName: tls-secret     # Reference to a secret containing your TLS certs
