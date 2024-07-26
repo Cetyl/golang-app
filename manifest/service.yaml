@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: golang-app
-   labels:
+  labels:
     app: golang-app
 spec:
   type: NodePort
@@ -11,4 +11,4 @@ spec:
     targetPort: 8080  # Port on the pods
     nodePort: 30000   # Port accessible externally on each node
   selector:
-    app: golang-app 
+    app: golang-app
