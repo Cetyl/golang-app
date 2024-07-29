@@ -21,7 +21,7 @@ jobs:
                 go-version: 1.22
 
             - name: Build the Golang image   
-              run: go build -o golang-app
+              run: go build -o go-web-app
 
             - name: Test the golang app
-              run: go test ./golang-app
+              run: go test ./...
