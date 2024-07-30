@@ -40,6 +40,9 @@ jobs:
   
   docker-push :
     runs-on: ubuntu-latest
+  
+    needs: build
+    
     steps:
     
       - name: Checkout repository
@@ -61,4 +64,27 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/golang-app:${{github.run_id}}
-   
+
+          
+  update-newtag-in-helm-chart:
+    runs-on: ubuntu-latest
+
+    needs: docker-push
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.TOKEN }}
+
+    - name: Update tag in Helm chart
+      run: |
+        sed -i 's/tag: .*/tag: "${{github.run_id}}"/' helm/golang-app-chart/values.yaml
+
+    - name: Commit and push changes
+      run: |
+        git config --global user.email "rohan.cetyl@gmail.com"
+        git config --global user.name "Cetyl"
+        git add helm/golang-app-chart/values.yaml
+        git commit -m "Update tag in Helm chart"
+        git push
