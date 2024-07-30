@@ -8,4 +8,4 @@ image:
   repository: cetyl/golang-app:{{ .Values.image.tag }}
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "${BUILD_NUMBER}"
+  tag: "2"
