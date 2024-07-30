@@ -1,0 +1,78 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_USERNAME = credentials('dockerhub-username') // Replace with your Jenkins credentials ID for Docker Hub username
+        DOCKERHUB_TOKEN = credentials('dockerhub-token') // Replace with your Jenkins credentials ID for Docker Hub token
+        DOCKER_IMAGE = "cetyl/golang-app:${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Cetyl/golang-app.git'
+            }
+        }
+
+        stage('Build Go Application') {
+            steps {
+                script {
+                    // Ensure Go is installed and available
+                    sh 'go version'
+                    sh 'go build -o golang-app'
+                }
+            }
+        }
+
+        stage('Test Go Application') {
+            steps {
+                sh 'go test ./...'
+            }
+        }
+
+        stage('Build and Push Docker Image') {
+            steps {
+                script {
+                    sh 'docker build -t ${DOCKER_IMAGE} .'
+                    def dockerImage = docker.image("${DOCKER_IMAGE}")
+                    docker.withRegistry('https://index.docker.io/v1/', "docker-cred") {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+
+        stage('Update Tag in Helm Chart') {
+
+            environment {
+                GIT_REPO_NAME = "golang-app"
+                GIT_USER_NAME = "Cetyl"
+            }
+
+            steps {
+                withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+                    script {
+                        // Ensure git configuration and update Helm chart
+                        sh '''
+                        git config user.email "rohan.cetyl@gmail.com"
+                        git config user.name "Cetyl"
+                        sed -i 's/tag: .*/tag: "${BUILD_NUMBER}"/' helm/golang-app-chart/values.yaml
+                        git add helm/golang-app-chart/values.yaml
+                        git commit -m "Update tag in Helm chart"
+                        git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+                        '''
+                    }
+                }
+            }
+        }
+
+        
+    }
+
+    post {
+        always {
+            // Archive the build artifacts, if any
+            archiveArtifacts artifacts: 'golang-app', allowEmptyArchive: true
+        }
+    }
+}
