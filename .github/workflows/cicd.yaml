@@ -8,7 +8,7 @@ on:
       - 'helm/**'
       - 'manifest/**'
       - 'README.md'
-      - 'templates/**'
+      - 'jenkins/**'
 
 jobs:
   build:
